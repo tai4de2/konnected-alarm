@@ -1,0 +1,6 @@
+{
+    "endpoint_type": "rest",
+    "endpoint": "http://192.168.0.192:5556/path1/path2",
+    "token": "ABC123",
+    "sensors": [{"zone": 1}]
+}

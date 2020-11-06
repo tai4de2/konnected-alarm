@@ -1,24 +1,12 @@
 # Copyright (c) 2020 Ted Miller. All rights reserved.
 
-import enum
 import ted_logger
 import typing
 
 from discovery import DiscoveredPanel
+from pin_desc import PinCategory, PinFunction
 
 _LOGGER = ted_logger.get_logger(__name__)
-
-class PinCategory(enum.Enum):
-    ZONE = enum.auto()
-    OUTPUT_ONLY = enum.auto()
-
-class PinFunction(enum.Enum):
-    NONE = enum.auto()
-    BINARY_SENSOR = enum.auto()
-    DIGITAL_SENSOR = enum.auto()
-    ONEWIRE_SENSOR = enum.auto()
-    ALARM_ACTUATOR = enum.auto()
-    TRIGGER_ACTUATOR = enum.auto()
 
 class PinMapping:
     __TRIGGER_OR_ANY_SENSOR = (
@@ -29,7 +17,7 @@ class PinMapping:
     __ALARM_ACTUATOR_ONLY = (PinFunction.ALARM_ACTUATOR)
     __TRIGGER_ACTUATOR_ONLY = (PinFunction.TRIGGER_ACTUATOR)
 
-    # (pin#, (functions), user-selectable, category, label)
+    # (pin/zone # or name, functions, user-selectable, category, label)
     _PRO_PIN_MAPPING = (
         (1, __TRIGGER_OR_ANY_SENSOR, True, PinCategory.ZONE, "Zone 1"),
         (2, __TRIGGER_OR_ANY_SENSOR, True, PinCategory.ZONE, "Zone 2"),
@@ -43,9 +31,9 @@ class PinMapping:
         (10, __BINARY_SENSOR_ONLY, False, PinCategory.ZONE, "Zone 10"),
         (11, __BINARY_SENSOR_ONLY, False, PinCategory.ZONE, "Zone 11"),
         (12, __BINARY_SENSOR_ONLY, False, PinCategory.ZONE, "Zone 12"),
-        (13, __ALARM_ACTUATOR_ONLY, False, PinCategory.OUTPUT_ONLY, "Alarm 1"),
-        (14, __TRIGGER_ACTUATOR_ONLY, False, PinCategory.OUTPUT_ONLY, "Out 1"),
-        (15, __ALARM_OR_TRIGGER, False, PinCategory.OUTPUT_ONLY, "Alarm2/Out2"))
+        ("alarm1", __ALARM_ACTUATOR_ONLY, False, PinCategory.OUTPUT_ONLY, "Alarm 1"),
+        ("out1", __TRIGGER_ACTUATOR_ONLY, False, PinCategory.OUTPUT_ONLY, "Out 1"),
+        ("alarm2_out2", __ALARM_OR_TRIGGER, False, PinCategory.OUTPUT_ONLY, "Alarm2/Out2"))
 
     __PHYSICAL_INDEX = 0
     __FUNCTION_INDEX = 1
@@ -59,10 +47,11 @@ class PinMapping:
         # Only for Konnected Pro for now.
         assert discovered_panel.model_name == "Konnected Pro"
         self._mapping = PinMapping._PRO_PIN_MAPPING
+        self._use_zones = True
 
         pin_count = len(self._mapping)
-        self._valid_functions = [None * pin_count]
-        self._assigned_functions = [PinFunction.NONE * pin_count]
+        self._valid_functions = [None] * pin_count
+        self._assigned_functions = [PinFunction.NONE] * pin_count
 
     def pin_count(self) -> int:
         """
@@ -87,7 +76,7 @@ class PinMapping:
 
     def pin_category(self, pin_ordinal: int) -> PinCategory:
         """
-        Gets a pin's category (zone, output only).
+        Gets a pin's category (zone, output-ßonly).
         """
         return self._mapping[pin_ordinal][PinMapping.__CATEGORY_INDEX]
 
@@ -97,8 +86,8 @@ class PinMapping:
         """
         return self._mapping[pin_ordinal][PinMapping.__LABEL_INDEX]
 
-    def pin_physical_number(self, pin_ordinal: int) -> int:
+    def pin_panel_designator(self, pin_ordinal: int) -> typing.Tuple[str, typing.Any]:
         """
-        Gets the physical pin number for the pin.
+        Gets the label and value used in provisioning JSON for a pin.
         """
-        return self._mapping[pin_ordinal][PinMapping.__PHYSICAL_INDEX]
+        return ("zone" if self._use_zones else "pin"), self._mapping[pin_ordinal][PinMapping.__PHYSICAL_INDEX]

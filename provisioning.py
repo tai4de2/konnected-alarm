@@ -3,7 +3,7 @@
 import ted_logger
 import typing
 
-from discovery import DiscoveredPanel
+#from discovery import DiscoveredPanel
 from pin_mapping import PinMapping, PinFunction
 
 _LOGGER = ted_logger.get_logger(__name__)
@@ -12,10 +12,10 @@ class Provisioner:
 
     def __init__(self, pin_mapping: PinMapping):
         self._pin_mapping = pin_mapping
-        self._pin_provisioning = [PinFunction.NONE * pin_mapping.pin_count()]
-        self._pin_extra = [None * pin_mapping.pin_count()]
+        self._pin_provisioning = [PinFunction.NONE] * pin_mapping.pin_count()
+        self._pin_extra = [None] * pin_mapping.pin_count()
 
-    def provision_pin(
+    def provision(
         self,
         pin_ordinal: int,
         function: PinFunction,
@@ -26,8 +26,8 @@ class Provisioner:
         Provisions (or deprovisions) a pin.
 
         For deprovisioning, set pin function to NONE.
-        For provisioning to a sensor pin function, supply a sensor poll interval.
-        For provisioning to a actuator pin function, supply a trigger high/low value.
+        For provisioning to digital sensor function (but not other sensors), supply a sensor poll interval.
+        For provisioning to actuator function, supply a trigger high/low value.
         """
 
         if (function == PinFunction.NONE) \
@@ -74,7 +74,7 @@ class Provisioner:
         """
         return self._pin_extra[pin_ordinal]
 
-    def create_payload(self, * endpoint: str, token: str) -> dict:
+    def create_payload(self, *, endpoint: str, token: str) -> dict:
         """
         Creates a payload which can be sent to the panel to provision it. This does not actually send
         anything to the panel.
@@ -86,20 +86,20 @@ class Provisioner:
 
         # Build up arrays related to pins.
         for i in range(len(self._pin_provisioning)):
-            physical_number = self._pin_mapping.pin_physical_number(i)
+            label, value = self._pin_mapping.pin_panel_designator(i)
             provisioned_as = self._pin_provisioning[i]
             extra = self._pin_extra[i]
 
             if (provisioned_as == PinFunction.BINARY_SENSOR) \
                 or (provisioned_as == PinFunction.ONEWIRE_SENSOR):
-                sensors.append({"pin": physical_number})
+                sensors.append({label: value})
 
             elif provisioned_as == PinFunction.DIGITAL_SENSOR:
-                digital_sensors.append({"pin": physical_number, "poll_interval": extra})
+                digital_sensors.append({label: value, "poll_interval": extra})
 
             elif (provisioned_as == PinFunction.ALARM_ACTUATOR) \
                 or (provisioned_as == PinFunction.TRIGGER_ACTUATOR):
-                actuators.append({"pin": physical_number, "trigger": 1 if extra else 0})
+                actuators.append({label: value, "trigger": 1 if extra else 0})
 
             else:
                 assert provisioned_as == PinFunction.NONE

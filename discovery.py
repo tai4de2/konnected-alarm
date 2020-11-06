@@ -108,7 +108,7 @@ class Discoverer:
             return None
 
         _LOGGER.info("found %s", repr(endpoint.__dict__))
-        return endpoint if (len(endpoint.url_base) > 0) else None
+        return endpoint
 
     @staticmethod
     def _initialize_empty_endpoint(map, endpoint):
