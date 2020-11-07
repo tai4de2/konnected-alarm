@@ -24,8 +24,11 @@ async def main():
         provisioner = provisioning.Provisioner(mapping)
         provisioner.provision(0, pin_desc.PinFunction.BINARY_SENSOR)
         provisioner.provision(1, pin_desc.PinFunction.BINARY_SENSOR)
+        provisioner.provision(12, pin_desc.PinFunction.ALARM_ACTUATOR, actuator_trigger_high = True)
 
         body = provisioner.create_payload(endpoint = "http://192.168.0.192:5556/path1/path2", token = "abc")
+        _LOGGER.debug(f"provisioning payload: %s", body)
+
         response = requests.put(
             discovered_panel.url_base + "/settings",
             json = body)

@@ -12,10 +12,10 @@ class PinMapping:
     __TRIGGER_OR_ANY_SENSOR = (
         PinFunction.TRIGGER_ACTUATOR,
         PinFunction.BINARY_SENSOR, PinFunction.DIGITAL_SENSOR, PinFunction.ONEWIRE_SENSOR)
-    __BINARY_SENSOR_ONLY = (PinFunction.BINARY_SENSOR)
+    __BINARY_SENSOR_ONLY = (PinFunction.BINARY_SENSOR,)
     __ALARM_OR_TRIGGER = (PinFunction.ALARM_ACTUATOR, PinFunction.TRIGGER_ACTUATOR)
-    __ALARM_ACTUATOR_ONLY = (PinFunction.ALARM_ACTUATOR)
-    __TRIGGER_ACTUATOR_ONLY = (PinFunction.TRIGGER_ACTUATOR)
+    __ALARM_ACTUATOR_ONLY = (PinFunction.ALARM_ACTUATOR,)
+    __TRIGGER_ACTUATOR_ONLY = (PinFunction.TRIGGER_ACTUATOR,)
 
     # (pin/zone # or name, functions, user-selectable, category, label)
     _PRO_PIN_MAPPING = (
